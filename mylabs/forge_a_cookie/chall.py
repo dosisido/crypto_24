@@ -18,7 +18,7 @@ def get_user_token(name):
         "username": name,
         # "admin": True
     })
-    print(token)
+    # print(token)
     enc_token = cipher.encrypt(token.encode())
     return f"{base64.b64encode(nonce).decode()}.{base64.b64encode(enc_token).decode()}"
 
@@ -60,8 +60,8 @@ if __name__ == "__main__":
         "flag - get the flag\n" + \
         "> "
     while True:
-        # cmd = input(menu).strip()
-        cmd = 'flag'
+        cmd = input(menu).strip()
+        # cmd = 'flag'
 
         if cmd == "quit":
             break
