@@ -60,7 +60,8 @@ if __name__ == "__main__":
         "flag - get the flag\n" + \
         "> "
     while True:
-        cmd = input(menu).strip()
+        # cmd = input(menu).strip()
+        cmd = 'flag'
 
         if cmd == "quit":
             break
