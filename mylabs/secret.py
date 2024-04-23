@@ -1,1 +1,0 @@
-flag = 'My super duper secret'
