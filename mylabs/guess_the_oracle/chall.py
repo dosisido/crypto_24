@@ -3,17 +3,24 @@ from Crypto.Util.Padding import pad, unpad
 from Crypto.Random import get_random_bytes
 from secret import flag
 
-assert(len(flag) == len("CRYPTO23{}") + 36)
+assert(len(flag) == len("CRYPTO23{}") + 36) # len = 46
 
 key = get_random_bytes(24)
 flag = flag.encode()
 
 def encrypt() -> bytes:
+    # init
+    cipher = AES.new(key=key, mode=AES.MODE_ECB)
+
+    # string
     data  = bytes.fromhex(input("> "))
     payload = data + flag
 
-    cipher = AES.new(key=key, mode=AES.MODE_ECB)
-    print(cipher.encrypt(pad(payload, AES.block_size)).hex())
+    # encrypt
+    hex_string = cipher.encrypt(pad(payload, AES.block_size)).hex()
+    
+    print(hex_string)
+    return hex_string
 
 
 def main():
