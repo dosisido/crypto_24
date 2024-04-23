@@ -4,7 +4,7 @@ from secret import flag
 import json, base64
 
 key = get_random_bytes(32)
-# dosisido", "admin": 'True 
+
 
 def make_cipher():
     nonce = get_random_bytes(12)
@@ -15,10 +15,9 @@ def make_cipher():
 def get_user_token(name):
     nonce, cipher = make_cipher()
     token = json.dumps({
-        "username": name,
-        # "admin": True
+        "username": name
     })
-    # print(token)
+    print(token)
     enc_token = cipher.encrypt(token.encode())
     return f"{base64.b64encode(nonce).decode()}.{base64.b64encode(enc_token).decode()}"
 
@@ -30,7 +29,6 @@ def check_user_token(token):
     dec_token = cipher.decrypt(base64.b64decode(token))
 
     user = json.loads(dec_token)
-    print(user)
     
     if user.get("admin", False) == True:
         return True
@@ -61,7 +59,6 @@ if __name__ == "__main__":
         "> "
     while True:
         cmd = input(menu).strip()
-        # cmd = 'flag'
 
         if cmd == "quit":
             break

@@ -1,6 +1,8 @@
 from pwn import *
+import json
 
 conn = None
+
 
 def xor(a, b):
     return bytes([d ^ o for d,o in zip(a, b)])
@@ -8,26 +10,37 @@ def xor(a, b):
 def nline():
     return conn.recvline().decode().strip()
 
+def create_user_token(name):
+    token = json.dumps({
+        "username": name,
+        # "admin": True
+    })
+    # print(token)
+    return token.encode()
+
+
 def main():
     global conn
     conn = remote('130.192.5.212', 6521)
-    conn = process(["python3", "chall.py"])
+    # conn = process(["python3", "original.py"])
+    
     print()
+
+    nline()
+
+    dosi = 'dosi'*((64*2 - 16)//4)
+
+    conn.sendline(dosi.encode())
+    user_string = create_user_token(dosi)
 
     print(nline())
 
-    dosi = 'dosi'*((64*2 - 16)//4)
-    # S = '{"username": "{dosi}"}' # 16
-
-    conn.sendline(dosi.encode())
-
-    # print(nline())
     token = nline().split()[-1]
-    # print(token)
     nonce, ctxt = token.split('.')
     print(nonce, ctxt)
     ctxt = base64.b64decode(ctxt)
-    k1 = xor(dosi.encode(), ctxt)
+    print('ctxt len:', len(ctxt))
+    k1 = xor(user_string, ctxt)
     print('k1', k1, len(k1))
 
 
@@ -37,7 +50,7 @@ def main():
 
     conn.sendline('flag'.encode())
 
-    print(nline())
+    response = nline()
 
 
     dosi = 'dosi'*((64*2 - 32)//4)
@@ -47,8 +60,16 @@ def main():
     send = nonce + '.' + base64.b64encode(ctxt).decode()
     print('send', send)
     conn.sendline(send.encode())
-    print(nline())
-    print(nline())
+
+    response = nline()
+    if 'You are admin!' not in response:
+        print(response)
+        exit("Failed to be admin")
+
+    nline()
+    flag = nline()
+
+    print(f'{flag= }')
 
     
     print('\n\n')
