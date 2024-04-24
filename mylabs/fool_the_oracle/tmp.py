@@ -18,11 +18,17 @@ def measure_loop_time(percentage, with_sleep: float = 0):
     
     return total_seconds
 
-def fb_byte():
+def gen_byte():
     C = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
     for i in C:
         for j in C:
             yield i + j
+
+def gen_hex():
+    C = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
+    for i in C:
+        yield i
+
 
 def generate_hex_configurations(length):
     hex_characters = '0123456789abcdef'

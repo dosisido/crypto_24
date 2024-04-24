@@ -1,1 +1,1 @@
-flag = 'CRYPTO23{My super duper secret password______}'
+flag = 'CRYPTO24{My super duper secret password______}'

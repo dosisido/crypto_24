@@ -8,18 +8,26 @@ assert(len(flag) == len("CRYPTO23{}") + 36) # len = 46
 key = get_random_bytes(24)
 flag = flag.encode()
 
-def encrypt() -> bytes:
+def encrypt(data = None) -> bytes:
     # init
     cipher = AES.new(key=key, mode=AES.MODE_ECB)
 
     # string
-    data  = bytes.fromhex(input("> "))
+    if data is None:
+        data  = bytes.fromhex(input("> "))
+    else:
+        data = bytes.fromhex(data)
     payload = data + flag
+
+    if True:
+        print('recieved:',)
+        for i in range(len(payload) // AES.block_size * 2):
+            print(payload.hex()[i * 32:(i + 1) * 32])
 
     # encrypt
     hex_string = cipher.encrypt(pad(payload, AES.block_size)).hex()
     
-    print(hex_string)
+    # print(hex_string)
     return hex_string
 
 
