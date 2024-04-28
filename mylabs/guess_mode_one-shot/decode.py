@@ -50,7 +50,7 @@ def proc(conn):
 
 def main():
     conn = remote('130.192.5.212', 6531)
-    conn = process(["python3", "original.py"])
+    # conn = process(["python3", "original.py"])
 
     for i in range(128):
         print(f"elaboring #{i}")
