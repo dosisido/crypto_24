@@ -1,0 +1,1 @@
+flag = 'CRYPTO24{My super duper secret password______}'
