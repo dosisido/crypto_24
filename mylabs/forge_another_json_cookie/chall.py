@@ -6,7 +6,7 @@ import json, base64
 
 key = get_random_bytes(32)
 
-def get_user_token(name: str):
+def get_user_token(name: str) -> str:
     cipher = AES.new(key=key, mode=AES.MODE_ECB)
     print('username: ', name)
     token = json.dumps({
@@ -32,6 +32,10 @@ def check_user_token(token):
         ),
         AES.block_size
     )
+
+    # dec_token = cipher.decrypt(
+    #         base64.b64decode(token)
+    #     )
 
     user = json.loads(dec_token)
     
