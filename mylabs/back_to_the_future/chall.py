@@ -13,6 +13,8 @@ app.config['SESSION_TYPE'] = 'filesystem'
 sess = Session()
 sess.init_app(app)
 
+K_TIME = 24 * 60 * 60
+
 def make_cipher():
     key = get_random_bytes(32)
     nonce = get_random_bytes(12)
@@ -64,9 +66,10 @@ def login():
     if admin != 1:
         admin = 0
     else:
-        session['admin_expire_date'] = int(time.time()) - randint(10, 266) * 24 * 60 * 60
-    expire_date = int(time.time()) + 30 * 24 * 60 * 60
+        session['admin_expire_date'] = int(time.time()) - randint(10, 266) * K_TIME
+    expire_date = int(time.time()) + 30 * K_TIME
     cookie = f"username={username}&expires={expire_date}&admin={admin}"
+    print("cookie: ", cookie)
 
     return jsonify({
         "nonce":bytes_to_long(nonce), 
@@ -88,7 +91,8 @@ def get_flag():
         if int(token["admin"]) != 1:
             return "You are not an admin!"
         
-        if 290 * 24 * 60 * 60 < abs(int(token["expires"]) - session['admin_expire_date']) < 300 * 24 * 60 * 60:
+        print("releved time: ", int(token["expires"]))
+        if 290 * K_TIME < abs(int(token["expires"]) - session['admin_expire_date']) < 300 * K_TIME:
             return f"OK! Your flag: {flag}"
         else:
             return "You have expired!"
