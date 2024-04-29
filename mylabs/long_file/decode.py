@@ -18,7 +18,7 @@ CHARACTER_FREQ = {
 } # ','
 
 ciphertexts = []
-with open(FILE, 'rb') as f: ciphertexts = f.readlines()
+with open(FILE, 'rb') as f: ciphertexts = f.read(1000)
 
 print("stats: ")
 print(f"\tlen ciphertexts: {len(ciphertexts)}")
@@ -34,31 +34,23 @@ print(f"\tshortest: {len(shortest_c)}")
 
 candidates_list = []
 
-for byte_to_guess in range(max_len):
+for byte_to_guess in range(max_len):            # cicla verticalmente su tutti i caratteri
     freqs = numpy.zeros(256, dtype=float)
 
     for guessed_byte in range(256):
-        for c in ciphertexts:
-            if byte_to_guess >= len(c):
+        for line in ciphertexts:
+            if byte_to_guess >= len(line):
                 continue
-            if chr(c[byte_to_guess] ^ guessed_byte) in printable:
-                freqs[guessed_byte] += CHARACTER_FREQ.get(chr(c[byte_to_guess] ^ guessed_byte).lower(),0)
+            if chr(line[byte_to_guess] ^ guessed_byte) in printable:
+                freqs[guessed_byte] += CHARACTER_FREQ.get(chr(line[byte_to_guess] ^ guessed_byte).lower(),0)
 
     max_matches = max(freqs)
-    # print(max_matches)
 
     match_list = [(freqs[i], i) for i in range(256)]
     # print(match_list)
     ordered_match_list = sorted(match_list, reverse=True)
     # print(ordered_match_list)
 
-    # candidates = []
-    # for pair in ordered_match_list:
-    #     if pair[0] < max_matches * .95:
-    #         break
-    #     candidates.append(pair)
-
-    # print(candidates)
     candidates_list.append(ordered_match_list)
 
 # for c in candidates_list:
@@ -82,7 +74,7 @@ for x in candidates_list:
 
 
 
-for c in ciphertexts:
-    l = min(len(keystream),len(c))
-    print(strxor(c[:l],keystream[:l]).decode())
+for line in ciphertexts:
+    l = min(len(keystream),len(line))
+    print(strxor(line[:l],keystream[:l]))
 
