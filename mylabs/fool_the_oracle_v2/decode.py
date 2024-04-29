@@ -4,14 +4,14 @@ from chall import encrypt as enc
 import string
 
 
-KNOWN_PART = ''
+KNOWN_PART = 'CRYPTO24{'
 KEY_SIZE = 46
 PADDING_SIZE = 5
-CHAR = '0'.encode()
+CHAR = '0'
 
 
-conn = process(['python3', 'original.py'])
-# conn = remote('130.192.5.212', '6542')
+# conn = process(['python3', 'original.py'])
+conn = remote('130.192.5.212', '6542')
 
 def encrypt(data: str) -> bytes:
     conn.recvuntil(b'> ')
@@ -28,26 +28,35 @@ def main_printable():
     flag = KNOWN_PART.encode().hex()
     block_size = AES.block_size
     block_size_hex = block_size * 2
-    padding_len_to_generate_hex = padding_len_to_generate * 2
-    n_bloks = 8
-    padding_bloks = PADDING_SIZE // block_size
-    if PADDING_SIZE % block_size != 0: padding_bloks += 1
-    
-    padding_len_to_generate = block_size - padding_len
 
-    for i in range(len(known)//2, block_size_hex//2 * n_bloks):
+    padding_blocks = PADDING_SIZE // block_size
+    if PADDING_SIZE % block_size != 0: padding_blocks += 1
+    padding_len_to_generate = padding_blocks * block_size - PADDING_SIZE
+    padding_len_to_generate_hex = padding_len_to_generate * 2
+    
+    key_blocks = KEY_SIZE // block_size
+    if KEY_SIZE % block_size != 0: key_blocks += 1
+
+    tot_bloks = padding_blocks + key_blocks * 2
+
+
+    for i in range(len(flag)//2, block_size_hex//2 * key_blocks):
         for PRNT in string.printable:
             PRNT = PRNT.encode().hex()
-            if len(PRNT) != 2:
-                exit("PRNT len must be 2")
-            payload = blank_char * (padding_len_to_generate_hex + block_size_hex * n_bloks - i*2 - 2) + known + PRNT
-            padding = blank_char * (padding_len_to_generate_hex + block_size_hex * n_bloks - i*2 - 2)
-            encrypted = encrypt(payload + padding)
-            # print(payload, padding, sep='\n')
-            if encrypted[:block_size_hex * n_bloks] == encrypted[block_size_hex * n_bloks:block_size_hex * 2 * n_bloks]:
-                known+= PRNT
-                print(bytes.fromhex(known).decode('utf-8'))
-                if(known[-1] == '}'):
+            if len(PRNT) != 2: exit("PRNT len must be 2")
+
+            payload = CHAR * padding_len_to_generate_hex                            # toglie il padding dalla finestra
+            payload+= CHAR * (block_size_hex * key_blocks - i*2 - 2) + flag + PRNT
+            payload+= CHAR * (block_size_hex * key_blocks - i*2 - 2)
+            
+            encrypted = encrypt(payload)
+            encrypted = encrypted[padding_blocks * block_size_hex:]
+
+            if encrypted[:block_size_hex * key_blocks] == encrypted[block_size_hex * key_blocks:block_size_hex * 2 * key_blocks]:
+                flag+= PRNT
+                printable_flag = bytes.fromhex(flag).decode('utf-8')
+                print(printable_flag)
+                if(len(printable_flag) == KEY_SIZE):
                     return
                 break
         else:
