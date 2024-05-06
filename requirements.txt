@@ -8,6 +8,7 @@ charset-normalizer==3.3.2
 click==8.1.7
 colored-traceback==0.3.0
 cryptography==42.0.5
+egcd==1.0.0
 flask==3.0.3
 flask-session==0.8.0
 idna==3.7
