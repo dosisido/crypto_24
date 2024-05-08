@@ -1,14 +1,14 @@
-from base64 import b64decode
-import numpy
 from Crypto.Util.strxor import strxor
-from string import *
+from string import printable
 
 import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-
-
 FILE = 'file.enc'
+KEYSTREAM_SIZE = 1000
+
+def xor(a, b):
+    return bytes([x ^ y for x,y in zip(a,b)])
 
 CHARACTER_FREQ = {
     'a': 0.0651738, 'b': 0.0124248, 'c': 0.0217339, 'd': 0.0349835, 'e': 0.1041442, 'f': 0.0197881, 'g': 0.0158610,
@@ -18,63 +18,36 @@ CHARACTER_FREQ = {
 } # ','
 
 ciphertexts = []
-with open(FILE, 'rb') as f: ciphertexts = f.read(1000)
-
-print("stats: ")
-print(f"\tlen ciphertexts: {len(ciphertexts)}")
-
-longest_c = max(ciphertexts, key=len)
-max_len = len(longest_c)
-print(f"\tlongest: {len(longest_c)}")
-
-shortest_c = min(ciphertexts, key=len)
-min_len = len(shortest_c)
-print(f"\tshortest: {len(shortest_c)}")
-
-
-candidates_list = []
-
-for byte_to_guess in range(max_len):            # cicla verticalmente su tutti i caratteri
-    freqs = numpy.zeros(256, dtype=float)
-
-    for guessed_byte in range(256):
-        for line in ciphertexts:
-            if byte_to_guess >= len(line):
-                continue
-            if chr(line[byte_to_guess] ^ guessed_byte) in printable:
-                freqs[guessed_byte] += CHARACTER_FREQ.get(chr(line[byte_to_guess] ^ guessed_byte).lower(),0)
-
-    max_matches = max(freqs)
-
-    match_list = [(freqs[i], i) for i in range(256)]
-    # print(match_list)
-    ordered_match_list = sorted(match_list, reverse=True)
-    # print(ordered_match_list)
-
-    candidates_list.append(ordered_match_list)
-
-# for c in candidates_list:
-#     print(c)
-
-
-keystream = bytearray()
-for x in candidates_list:
-    keystream += x[0][1].to_bytes(1,byteorder='big')
-
-
-# keystream[0] = 148
-
-# dec = keystream[1] ^ ciphertexts[0][1]
-# dec2 = keystream[2] ^ ciphertexts[0][2]
-
-# mask = dec ^ ord('h')
-# keystream[1] = keystream[1] ^ mask
-# mask2 = dec2 ^ ord('i')
-# keystream[2] = keystream[2] ^ mask2
+with open(FILE, 'rb') as f: 
+    for chunk in iter(lambda: f.read(KEYSTREAM_SIZE), b''): 
+        ciphertexts.append(chunk)
 
 
 
-for line in ciphertexts:
-    l = min(len(keystream),len(line))
-    print(strxor(line[:l],keystream[:l]))
+key = b''  
 
+for column in range(KEYSTREAM_SIZE):
+    print(f"Trying column: {column}", end='\r')
+    occurrences = set()
+    for char in range(256):
+        char = bytes([char])
+        # print(f"Trying char: {char.hex()}")
+        valids = 0
+        for row in ciphertexts:
+            c = xor(bytes([row[column]]), char)
+            if c in printable.encode(): valids+= CHARACTER_FREQ.get(c.decode().lower(), 0)
+
+        occurrences.add((char, valids))
+
+    occurrences = sorted(occurrences, key=lambda x: x[1], reverse=True)
+    # print(occurrences)
+
+    key+=occurrences[0][0]
+
+print("key:", key.hex())
+
+plaintexts = ""
+for row in ciphertexts:
+    plaintexts+= strxor(row, key[:len(row)]).decode()
+with open('plaintext.txt', 'w') as f:
+    f.write(plaintexts)
