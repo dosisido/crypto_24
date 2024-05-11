@@ -1,3 +1,6 @@
 [submodule "examples"]
 	path = examples
 	url = https://github.com/aldobas/cryptography-03lpyov-exercises
+[submodule "rsa_textbook_attacks"]
+	path = rsa_textbook_attacks
+	url = https://github.com/dosisido/rsa_textbook_attacks
