@@ -11,9 +11,9 @@ PATH = {
     "challenges": "https://cryptoctf.m0lecon.it/api/v1/challenges"
 }
 
-OLD_CHALLENGES = 23
-SLEEP = 60
-END_DATE = datetime(2024, 5, 21, 0, 0, 0)
+OLD_CHALLENGES = 32
+SLEEP = 60 * 2
+END_DATE = datetime(2024, 6, 17, 0, 0, 0)
 
 
 def main():
@@ -26,6 +26,7 @@ def main():
     while not found:
         try:
             with requests.Session() as sess:
+                print(f"Checking at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}..." + " "*30, end="\r")
 
                 sess.get(PATH["login"], headers={"Authorization": f"Token {API_KEY}", "Content-Type": "application/json"})
                 response = sess.get(PATH["challenges"])
