@@ -1,6 +1,8 @@
 from pwn import *
 from Crypto.PublicKey import RSA
-from Crypto.Util.number import long_to_bytes
+from Crypto.Util.number import long_to_bytes, bytes_to_long
+import decimal
+
 e = 65537
 
 
@@ -9,8 +11,8 @@ n = int(conn.recvline().decode())
 cipher = int(conn.recvline().decode())
 key = RSA.construct((n, e))
 
-
-bounds = (0, key.n)
+decimal.getcontext().prec = n.bit_length()
+bounds = (decimal.Decimal(0), decimal.Decimal(key.n))
 c = cipher
 length = key.n.bit_length()
 for i in range(length):
@@ -27,12 +29,18 @@ for i in range(length):
         bounds = ((bounds[1] + bounds[0])//2, bounds[1])
 print()
 
-print(bounds)
+print("Bounds:")
+for b in bounds:
+    print(b)
+
+bounds = (int(bounds[0]), int(bounds[1]))
 print("Original message:")
 for bound in range(bounds[0], bounds[1]+1):
     print(long_to_bytes(bound).decode())
 
 print("Guess:")
-print((long_to_bytes(bounds[0]).decode())[:-1] + '}')
+myguess = (long_to_bytes(bounds[0]).decode())[:-1] + '}'
+print(myguess)
+print(bytes_to_long(myguess.encode()))
 
 
