@@ -3,7 +3,7 @@ from Crypto.Cipher import AES
 import string
 
 
-KNOWN_PART = 'CRYPTO24'
+KNOWN_PART = 'CRYPTO24{f18ce0c5-1f07-4f5e-aba0-500b5'
 TOT_PADDING = 10
 KEY_SIZE = len("CRYPTO23{}") + 36
 PADDING_SIZE = None
@@ -14,13 +14,15 @@ CHAR = '0'
 conn = remote('130.192.5.212', 6544)
 
 
-#CRYPTO24{f18ce0c5-1f07-4f5e-aba0-500b5185
+#CRYPTO24{f18ce0c5-1f07-4f5e-aba0-500b51857e63}
 
-def encrypt(data: str) -> bytes:
+def encrypt(hex: str) -> bytes:
     conn.recvuntil(b'> ')
     conn.sendline(b'enc')
     conn.recvuntil(b'> ')
-    conn.sendline(data.encode())
+    conn.sendline(hex.encode())
+    plain = conn.readline().strip().decode()
+    print(plain)
     data = conn.readline().strip().decode()
     return data
 
@@ -81,7 +83,10 @@ def main_printable():
 
 
     for i in range(len(flag)//2, block_size_hex//2 * key_blocks):
+        print("index:", i)
+        c = 0
         for PRNT in string.printable:
+            c+=1
             PRNT = PRNT.encode().hex()
             print(bytes.fromhex(flag + PRNT).decode(), end='\r')
 
@@ -94,18 +99,18 @@ def main_printable():
             encrypted = encrypt(payload)
             encrypted = encrypted[padding_blocks * block_size_hex:]
 
+
             if encrypted[:block_size_hex * key_blocks] == encrypted[block_size_hex * key_blocks:block_size_hex * 2 * key_blocks]:
                 flag+= PRNT
-                if(len(bytes.fromhex(flag)) == KEY_SIZE - 5):
-                    return
                 break
         else:
-            exit("WTF")
+            exit("WTF" + str(c))
     print(bytes.fromhex(flag + PRNT).decode())
     
 
 if __name__ == "__main__":
-    if PADDING_SIZE is None: find_padding_size()
+    if PADDING_SIZE is None: 
+        find_padding_size()
 
     main_printable() 
 

@@ -2,12 +2,12 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 from Crypto.Random import get_random_bytes
 from random import randint
-flag = "1"*(len("CRYPTO23{}") + 36)
+flag = "CRYPTO24{f18ce0c5-1f07-4f5e-aba0-500b51857e63}"
 
 assert(len(flag) == len("CRYPTO23{}") + 36)
 
 key = get_random_bytes(24)
-padding1_len = randint(1,6)
+padding1_len = 7
 padding1 = get_random_bytes(padding1_len)
 padding2 = get_random_bytes(10 - padding1_len)
 flag = flag.encode()
