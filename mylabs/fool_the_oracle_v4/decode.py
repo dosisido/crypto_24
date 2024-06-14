@@ -3,14 +3,16 @@ from Crypto.Cipher import AES
 import string
 
 
-KNOWN_PART = ''
-PADDING_SIZE = 5
-KEY_SIZE = len("CRYPTO23{}") + 36 + 10 - PADDING_SIZE
+KNOWN_PART = 'CRYPTO24'
+TOT_PADDING = 10
+KEY_SIZE = len("CRYPTO23{}") + 36
+PADDING_SIZE = None
 CHAR = '0'
 
 
 # conn = process(['python3', 'chall.py'])
-# conn = remote('130.192.5.212', 6544)
+conn = remote('130.192.5.212', 6544)
+
 
 #CRYPTO24{f18ce0c5-1f07-4f5e-aba0-500b5185
 
@@ -20,8 +22,6 @@ def encrypt(data: str) -> bytes:
     conn.recvuntil(b'> ')
     conn.sendline(data.encode())
     data = conn.readline().strip().decode()
-
-    # data = enc(data)
     return data
 
 def find_padding_size():
@@ -29,13 +29,15 @@ def find_padding_size():
 
     tot_padding = 10
 
-    origin = 'a' * 32
+    base = 64
+    enc = encrypt('a' * base)
+    i = 0
 
-    enc = encrypt(origin)
-
-    while enc[16:32] != enc[32:48]:
-        print()
-
+    while enc[32:64] != enc[64:96]:
+        i+=1
+        enc = encrypt('a' * (base + i*2))
+    
+    PADDING_SIZE = 16-i
 
     pass
 
@@ -54,40 +56,57 @@ def main_printable():
 
     tot_bloks = padding_blocks + key_blocks * 2
 
-
-    for i in range(len(flag)//2, block_size_hex//2 * key_blocks):
+    first_padding = ''
+    for i in range(TOT_PADDING - PADDING_SIZE):
         for PRNT in [f'{i:02x}' for i in range(256)]:
-            print(PRNT + ''*10, end='\r')
+            print("Pad: " + first_padding + PRNT, end='\r')
             if len(PRNT) != 2: exit("PRNT len must be 2")
 
             payload = CHAR * padding_len_to_generate_hex                            # toglie il padding dalla finestra
-            payload+= CHAR * (block_size_hex * key_blocks - i*2 - 2) + flag + PRNT
+            payload+= CHAR * (block_size_hex * key_blocks - i*2 - 2) + first_padding + PRNT
             payload+= CHAR * (block_size_hex * key_blocks - i*2 - 2)
             
             encrypted = encrypt(payload)
             encrypted = encrypted[padding_blocks * block_size_hex:]
 
             if encrypted[:block_size_hex * key_blocks] == encrypted[block_size_hex * key_blocks:block_size_hex * 2 * key_blocks]:
-                flag+= PRNT
-                print(flag)
-                if(len(bytes.fromhex(flag)) == KEY_SIZE - 5):
+                first_padding+= PRNT
+                if(len(bytes.fromhex(first_padding)) == KEY_SIZE - 5):
                     return
                 break
         else:
             print("WTF")
             return -567
+    print("Pad: " + first_padding)
+
+
+    for i in range(len(flag)//2, block_size_hex//2 * key_blocks):
+        for PRNT in string.printable:
+            PRNT = PRNT.encode().hex()
+            print(bytes.fromhex(flag + PRNT).decode(), end='\r')
+
+            if len(PRNT) != 2: exit("PRNT len must be 2")
+
+            payload = CHAR * padding_len_to_generate_hex                            # toglie il padding dalla finestra
+            payload+= CHAR * (block_size_hex * key_blocks - (i+TOT_PADDING - PADDING_SIZE)*2 - 2) + first_padding + flag + PRNT
+            payload+= CHAR * (block_size_hex * key_blocks - (i+TOT_PADDING - PADDING_SIZE)*2 - 2)
+            
+            encrypted = encrypt(payload)
+            encrypted = encrypted[padding_blocks * block_size_hex:]
+
+            if encrypted[:block_size_hex * key_blocks] == encrypted[block_size_hex * key_blocks:block_size_hex * 2 * key_blocks]:
+                flag+= PRNT
+                if(len(bytes.fromhex(flag)) == KEY_SIZE - 5):
+                    return
+                break
+        else:
+            exit("WTF")
+    print(bytes.fromhex(flag + PRNT).decode())
+    
 
 if __name__ == "__main__":
-    conn = None
-    # print(conn.recvline().decode().strip())
-    # if PADDING_SIZE is None: find_padding_size()
-    # print(f'PADDING_SIZE: {PADDING_SIZE}')
+    if PADDING_SIZE is None: find_padding_size()
 
-    conn = remote('130.192.5.212', 6544)
-
-    while main_printable() == -567: 
-        conn.close()
-        conn = remote('130.192.5.212', 6544)
-        print("Retry")
+    main_printable() 
 
     conn.close()
