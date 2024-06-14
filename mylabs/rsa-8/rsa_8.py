@@ -3,13 +3,15 @@ from Crypto.Util.number import bytes_to_long, getPrime
 import sys
 sys.path.append('../../rsa_textbook_attacks')
 from hastad_s_broadcast import hastad_broadcast_attack
+from Crypto.Util.number import long_to_bytes, bytes_to_long
+from primefac import introot
 
 # n1 = getPrime(512)*getPrime(512)
 # n2 = getPrime(512)*getPrime(512)
 # n3 = getPrime(512)*getPrime(512)
 # n = [n1, n2, n3]
 # print(n)
-# e = 3
+e = 3
 # m = bytes_to_long(flag)
 # print([pow(m,e,nn) for nn in n])
 
@@ -27,4 +29,9 @@ ciphers = [
 
 # hastad_broadcast_attack
 res = hastad_broadcast_attack(ciphers, mods).decode()
-print("Decrypted message:", res)
+print("Decrypted message:".ljust(22), res)
+
+
+
+res = introot(ciphers[0], e)
+print("Second way to decrypt:".ljust(22), long_to_bytes(res).decode())
